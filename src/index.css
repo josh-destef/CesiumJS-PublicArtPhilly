@@ -1,0 +1,602 @@
+/* src/index.css */
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* Global design system for Philly Public Art Explorer                         */
+/*                                                                             */
+/* DESIGN LANGUAGE:                                                            */
+/*  • Dark "night sky" background so the globe's colors pop                    */
+/*  • Glassmorphism (frosted-glass) panels for overlays                        */
+/*  • Philadelphia accent color: cyan #00DCFF (like ambient city light)        */
+/*  • Google Font: "Inter" — clean, modern, readable at small sizes            */
+/*                                                                             */
+/* TEACHING NOTE: CSS Custom Properties (--variables) are defined in :root     */
+/* and reused everywhere. Changing one variable updates ALL usages.            */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ── CSS Custom Properties (Design Tokens) ──────────────────────────────────── */
+:root {
+  --font:           'Inter', system-ui, sans-serif;
+
+  /* Color Palette */
+  --bg:             #080c14;
+  --surface:        rgba(10, 18, 32, 0.82);
+  --surface-hover:  rgba(20, 35, 60, 0.92);
+  --border:         rgba(0, 220, 255, 0.18);
+  --border-hover:   rgba(0, 220, 255, 0.45);
+  --accent:         #00dcff;
+  --accent-dim:     rgba(0, 220, 255, 0.15);
+  --accent-glow:    rgba(0, 220, 255, 0.35);
+  --text-primary:   #e8f0fe;
+  --text-secondary: #8ca0b8;
+  --text-muted:     #4a5a72;
+  --danger:         rgba(255, 90, 80, 0.85);
+  --warning:        rgba(255, 180, 50, 0.85);
+
+  /* Spacing */
+  --radius-sm:  6px;
+  --radius-md:  12px;
+  --radius-lg:  18px;
+
+  /* Blur for glassmorphism */
+  --blur:       blur(16px) saturate(180%);
+
+  /* Transition speed */
+  --transition: 0.2s ease;
+}
+
+/* ── Reset & Base ──────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* The globe is always full-screen; overflow is never needed */
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text-primary);
+}
+
+/* ── App Layout ────────────────────────────────────────────────────────────── */
+.app-root {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* The globe fills the entire screen and sits behind everything */
+.globe-container {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* ── Glassmorphism Utility ─────────────────────────────────────────────────── */
+/* Any panel with class "glass-panel" gets the frosted-glass look */
+.glass-panel {
+  background: var(--surface);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+/* ── Top Bar ───────────────────────────────────────────────────────────────── */
+.top-bar {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.app-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--surface);
+  backdrop-filter: var(--blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.title-icon { font-size: 1.4em; }
+
+.app-title h1 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* ── Search Box ────────────────────────────────────────────────────────────── */
+.search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 200px;
+  max-width: 360px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  width: 16px;
+  height: 16px;
+  color: var(--text-secondary);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 40px 10px 38px;
+  background: var(--surface);
+  backdrop-filter: var(--blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.search-input::placeholder { color: var(--text-muted); }
+
+.search-input:focus {
+  border-color: var(--border-hover);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.search-clear {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 4px;
+  border-radius: 50%;
+  transition: color var(--transition), background var(--transition);
+}
+
+.search-clear:hover { color: var(--text-primary); background: var(--accent-dim); }
+
+/* ── Filters Panel ─────────────────────────────────────────────────────────── */
+.filters-panel {
+  min-width: 260px;
+  max-width: 340px;
+}
+
+.filters-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: var(--radius-lg);
+  transition: background var(--transition);
+}
+
+.filters-header:hover { background: var(--accent-dim); }
+
+.filters-chevron {
+  display: inline-block;
+  transition: transform var(--transition);
+}
+.filters-chevron.open { transform: rotate(180deg); }
+
+.filters-body {
+  padding: 4px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filter-section { display: flex; flex-direction: column; gap: 6px; }
+
+.filter-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.filter-btn {
+  padding: 4px 10px;
+  font-family: var(--font);
+  font-size: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.filter-btn:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+  background: var(--accent-dim);
+}
+
+/* Active filter button gets full accent styling */
+.filter-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+  font-weight: 600;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.filter-reset {
+  font-family: var(--font);
+  font-size: 0.75rem;
+  background: none;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  border-radius: 20px;
+  padding: 4px 12px;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: all var(--transition);
+}
+.filter-reset:hover { background: rgba(255,90,80,0.12); }
+
+/* ── Popup Panel (right side) ──────────────────────────────────────────────── */
+.popup-panel {
+  position: absolute;
+  top: 80px;
+  right: 16px;
+  bottom: 200px; /* Leave room for gallery */
+  width: 320px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  /* Slide-in animation */
+  animation: slideInRight 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.popup-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.7rem;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+.popup-close:hover { background: var(--danger); color: white; border-color: transparent; }
+
+.popup-image-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.popup-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  display: block;
+}
+
+.popup-absent-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 180, 50, 0.85);
+  color: #1a1a1a;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 6px 10px;
+  text-align: center;
+}
+
+.popup-no-image {
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.popup-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.popup-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.popup-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.popup-meta span {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 10px;
+}
+
+.popup-location {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.popup-comments {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.btn-flyto {
+  margin-top: auto;
+  padding: 10px 16px;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--bg);
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+.btn-flyto:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 24px var(--accent-glow);
+}
+.btn-flyto:active { transform: translateY(0); }
+
+/* ── Bottom Gallery ─────────────────────────────────────────────────────────── */
+.gallery-wrapper {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: var(--surface);
+  backdrop-filter: var(--blur);
+  border-top: 1px solid var(--border);
+}
+
+.gallery-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px 4px;
+}
+
+.gallery-count {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.btn-surprise {
+  padding: 5px 14px;
+  background: linear-gradient(135deg, #7b2ff7, #00dcff);
+  border: none;
+  border-radius: 20px;
+  color: white;
+  font-family: var(--font);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: 0 2px 12px rgba(123, 47, 247, 0.4);
+}
+.btn-surprise:hover { transform: translateY(-1px) scale(1.03); }
+.btn-surprise:active { transform: scale(0.97); }
+
+.gallery-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 8px 16px 14px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  scroll-snap-type: x mandatory;
+}
+
+.gallery-scroll::-webkit-scrollbar { height: 4px; }
+.gallery-scroll::-webkit-scrollbar-track { background: transparent; }
+.gallery-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.gallery-card {
+  flex-shrink: 0;
+  width: 110px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  overflow: hidden;
+  transition: all var(--transition);
+  text-align: left;
+  font-family: var(--font);
+  scroll-snap-align: start;
+  position: relative;
+}
+
+.gallery-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+/* Selected card glows with the accent color */
+.gallery-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent), 0 6px 20px var(--accent-glow);
+}
+
+.gallery-thumb {
+  width: 100%;
+  height: 72px;
+  object-fit: cover;
+  display: block;
+}
+
+.gallery-thumb-placeholder {
+  width: 100%;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.03);
+  font-size: 1.5rem;
+}
+
+.gallery-card-info {
+  padding: 5px 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gallery-card-title {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.gallery-card-year {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+}
+
+.gallery-absent-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: var(--warning);
+  color: #1a1a1a;
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.gallery-empty {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  padding: 20px;
+  text-align: center;
+  width: 100%;
+}
+
+/* ── Loading & Error States ─────────────────────────────────────────────────── */
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(8, 12, 20, 0.75);
+  backdrop-filter: blur(4px);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-banner {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  background: rgba(255, 60, 50, 0.12);
+  border: 1px solid rgba(255, 60, 50, 0.45);
+  border-radius: var(--radius-md);
+  padding: 10px 20px;
+  color: #ff9090;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
